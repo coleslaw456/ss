@@ -37,7 +37,7 @@ private:
     /* 0x7ec?*/ u8 field_7ec;
     /* 0x7d8?*/ cCcD_GAtTgCoCommonBase* field_7d8;
     /* 0x79C?*/ u32 pumpkinState;//??
-    /* 0x8cc?*/ dFlowBase_c*  something;
+    /* 0x8cc?*/ dFlowBase_c* something;
     /* 0x870?*/ u32 field_0x870;
     /* 0x908?*/ f32 field_0x908;
     /* 0x90C?*/ f32 field_0x90C;
