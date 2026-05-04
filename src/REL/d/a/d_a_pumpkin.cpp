@@ -1,5 +1,8 @@
 #include "d/a/d_a_pumpkin.h"
 
+#include "d/snd/d_snd_wzsound.h"
+#include "d/col/bg/d_bg_s_acch.h"
+
 SPECIAL_ACTOR_PROFILE(PUMPKIN, dAcPumpkin_c, fProfile::PUMPKIN, 0x134, 0, 3);
 
 STATE_DEFINE(dAcPumpkin_c, Stick);
@@ -21,36 +24,36 @@ void dAcPumpkin_c::executeState_Stick() {
 
     fn_19_31B0();
 
-    bool temp = (mLinkage.mState == 1 && mLinkage.mType == 6);
+    bool temp = getLinkage().checkConnection(dLinkage_c::CONNECTION_6);//if (getLinkage().checkConnection(dLinkage_c::CONNECTION_6)
     if (temp) {
-        startSound(0x9f4);
+        startSound(SE_Pumpkin_PULLOUT);
         something->vt_0x18();
         return;
     }
 
-    temp = (mLinkage.mState == 1 && mLinkage.mType == 5);
+    temp = getLinkage().checkConnection(dLinkage_c::CONNECTION_5);
     if (temp) {
-        startSound(0x9f4);
+        startSound(SE_Pumpkin_PULLOUT);
         something->vt_0x18();
         return;
     }
 
-    temp = (mLinkage.mState == 1 && mLinkage.mType == 7);
+    temp = getLinkage().checkConnection(dLinkage_c::CONNECTION_7);
     if (temp) {
-        startSound(0x9f4);
+        startSound(SE_Pumpkin_PULLOUT);
         something->vt_0x18();
         return;
     }
 
     if (mLinkage.mState == 1) {
-        startSound(0x9f4);
+        startSound(SE_Pumpkin_PULLOUT);
         field_a15 = 0;
         something->vt_0x18();
         return;
     }
 
     temp = false;
-    if ((field_7ec & 1) && field_7d8->GetActor() != nullptr) {
+    if ((field_7ec & 1) && field_7d8->GetActor() != nullptr) {//probably ChkXXHit()
         temp = true;
     }
     if (temp && field_a17 != 0) {
@@ -69,7 +72,7 @@ void dAcPumpkin_c::finalizeState_Stick() {
 }
 void dAcPumpkin_c::initializeState_Wait() {
 
-    field_0x908 = 0;
+    field_0x908 = 0;//use set/unsetActorProperty for this
     mActorProperties = mActorProperties | 1;
     fn_19_2FC0(10);
     pumpkinState = pumpkinState & 0xfffffffe;
@@ -77,19 +80,19 @@ void dAcPumpkin_c::initializeState_Wait() {
 }
 void dAcPumpkin_c::executeState_Wait() {
 
-    bool temp = (mLinkage.mState == 1 && mLinkage.mType == 6);
+    bool temp = getLinkage().checkConnection(dLinkage_c::CONNECTION_6);
     if (temp) {
         //startSound(0x9f4);
         something->vt_0x18();
         return;
     }
-    temp = (mLinkage.mState == 1 && mLinkage.mType == 5);
+    temp = getLinkage().checkConnection(dLinkage_c::CONNECTION_5);
     if (temp) {
         //startSound(0x9f4);
         something->vt_0x18();
         return;
     }
-    temp = (mLinkage.mState == 1 && mLinkage.mType == 1);
+    temp = getLinkage().checkConnection(dLinkage_c::CONNECTION_1);
     if (temp) {
         //startSound(0x9f4);
         int temp2 = 0;
@@ -145,6 +148,15 @@ void dAcPumpkin_c::executeState_Wait() {
         mVelocity.y = 0;
         sLib::addCalcAngle((short*) & (mRotation.x), 0, 5, 0x100);
         sLib::addCalcAngle((short*) &(mRotation.z), 0, 5, 0x100);
+    }
+    if(field_0x3cc->ChkGndHit()) {
+        field_0x912 = 0;
+        if(field_0x908 >= -150.0) {
+            fn_19_31B0();
+        }
+    }
+    else {
+        fn_19_2C20();
     }
 }
 void dAcPumpkin_c::finalizeState_Wait() {}
@@ -221,9 +233,7 @@ void dAcPumpkin_c::initializeState_CarryBeetle() {
 
     fn_19_30C0();
 
-    mVelocity.x = mVec3_c::Zero.x;
-    mVelocity.z = mVec3_c::Zero.z;
-    mVelocity.y = mVec3_c::Zero.y;
+    mVelocity = mVec3_c::Zero;
     mSpeed = 0;
     field_0x870 = field_0x870 | 0x400;
     pumpkinState = pumpkinState & 0xfffffffe;

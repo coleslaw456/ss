@@ -30,7 +30,7 @@ public:
 
 private:
     /* 0x??? */ STATE_MGR_DECLARE(dAcPumpkin_c);
-    /* 0x3cc?*/ dBgS_AcchCir* field_0x3cc;
+    /* 0x3cc?*/ dBgS_Acch* field_0x3cc;
     /* 0x40c?*/ u8 field_0x40c;
     /* spacer*/ u8 spacer[1370];
     /* 0x744?*/ u8 field_0x744;
@@ -41,6 +41,7 @@ private:
     /* 0x870?*/ u32 field_0x870;
     /* 0x908?*/ f32 field_0x908;
     /* 0x90C?*/ f32 field_0x90C;
+    /* 0x912?*/ f32 field_0x912;
     /* 0x914?*/ float field0x914[21];
     /* 0x9b8?*/ u32 field0x9b8;
     /* 0x9db?*/ u8 field_0x9db;
