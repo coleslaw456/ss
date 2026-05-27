@@ -824,7 +824,7 @@ public:
     /* vt 0x0E8 */ virtual const mVec3_c &vt_0x0E8() const override {
         return field_0x12F4;
     }
-    /* vt 0x0EC */ virtual const mVec3_c &vt_0x0EC() const override {
+    /* vt 0x0EC */ virtual const mVec3_c &getHeadTranslation() const override {
         return mHeadTranslation;
     }
     /* vt 0x0F0 */ virtual const mVec3_c &vt_0x0F0() const override {
@@ -913,6 +913,19 @@ public:
     static mColor sGuideColor1;
     static mColor sGuideColor2;
     static mColor sGuideColor3;
+
+    // Really not sure about these - there exist virtual functions for these use cases...
+    const mAng& getField_0x1268() const {
+        return field_0x1268;
+    }
+
+    const mAng& getField_0x126A() const {
+        return field_0x126A;
+    }
+
+    void getWeaponLMtx(mMtx_c &mtx) const {
+        mMainMdl.getNodeWorldMtx(PLAYER_MAIN_NODE_WEAPON_L, mtx);
+    }
 
 protected:
     /* 0x370 */ mHeapAllocator_c mModelAllocator;

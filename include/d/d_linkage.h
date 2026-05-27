@@ -55,6 +55,10 @@ public:
         return mState;
     }
 
+    f32 getField_0x1C() const {
+        return field_0x1C;
+    }
+
     bool checkState(State_e state) const {
         return mState == state;
     }
@@ -68,13 +72,28 @@ public:
         return (checkState(STATE_ACTIVE) && mType == type);
     }
 
+    bool hasJntCol() const {
+        return field_0xA0 != nullptr;
+    }
+
+    dJntCol_c *getJntCol() {
+        return field_0xA0;
+    }
+
+    // TODO - can we get rid of this inline?
+    int getArrowOffsetPosAndAngle(
+        mVec3_c const *param_1, mAng3_c const *param_2, mVec3_c *param_3, mVec3_c *param_4, bool param_5
+    ) const {
+        return field_0xA0->getArrowOffsetPosAndAngle(param_1, param_2, param_3, param_4, param_5);
+    }
+
 public:
     void set(u32 flags, f32, f32, f32, void *unk);
     bool tryAttach(dAcObjBase_c *, dAcObjBase_c *, dAcRefBase_c *, ConnectionType_e, bool);
     void fn_80050DC0(dAcObjBase_c *, f32, f32, mAng);
     void fn_80050E00(dAcObjBase_c *, f32, f32, mAng);
     void fn_80050E40(dAcObjBase_c *, f32, f32, mAng);
-    void fn_80050EA0(dAcObjBase_c *);
+    void forceRemove(dAcObjBase_c *);
     void fn_800511E0(dAcObjBase_c *);
     void bushTpFunc(dBgS_Acch &);
     void fn_80051190(dAcObjBase_c *);

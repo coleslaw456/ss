@@ -95,11 +95,24 @@ public:
     mVec3_c &getOldPosition() {
         return mOldPosition;
     }
+    void setOldPosition(const mVec3_c &v) {
+        mOldPosition = v;
+    }
+    mVec3_c &getStartingPosition() {
+        return mStartingPos;
+    }
+    void setStartingPosition(const mVec3_c &v) {
+        mStartingPos = v;
+    }
     mVec3_c &getVelocity() {
         return mVelocity;
     }
     mAng3_c &getAngle() {
         return mAngle;
+    }
+
+    void setStartingRotation(const mAng3_c &v) {
+        mStartingRot = v;
     }
 
     f32 getVelocityMag() const {
@@ -254,13 +267,16 @@ public:
             return result;                                                                                             \
     } while (0)
 
-// Use this in actors' create functions
-#define CREATE_ALLOCATOR(className)                                                                                    \
+#define CREATE_ALLOCATOR_SIZE(className, size)                                                                         \
     do {                                                                                                               \
-        if (!initAllocatorWork1Heap(-1, #className "::m_allocator", 0x20)) {                                           \
+        if (!initAllocatorWork1Heap(size, #className "::m_allocator", 0x20)) {                                         \
             return FAILED;                                                                                             \
         }                                                                                                              \
     } while (0)
+
+// Use this in actors' create functions
+#define CREATE_ALLOCATOR(className) CREATE_ALLOCATOR_SIZE(className, -1)
+#define CREATE_ALLOCATOR_UNCHECKED(className) initAllocatorWork1Heap(-1, #className "::m_allocator", 0x20)
 
 class dAcObjRef_unk {
 public:

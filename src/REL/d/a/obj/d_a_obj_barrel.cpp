@@ -28,7 +28,6 @@
 #include "m/m_mtx.h"
 #include "m/m_quat.h"
 #include "m/m_vec.h"
-#include "math.h"
 #include "nw4r/g3d/res/g3d_resfile.h"
 #include "nw4r/math/math_arithmetic.h"
 #include "rvl/MTX/mtxvec.h"
@@ -92,7 +91,7 @@ static dCcD_SrcCyl sSrcCyl = {
     {
      /* mObjAt */ {AT_TYPE_PHYSICS, 0x10013, {0, 0, 0}, 4, 0, 0, 0, 0, 0},
      /* mObjTg */
-        {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_0x80000 | AT_TYPE_0x8000), 0x2000111, {0, 0xF, 0x407}, 0, 0},
+        {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_GLITTERING_SPORES | AT_TYPE_0x8000), 0x2000111, {0, 0xF, 0x407}, 0, 0},
      /* mObjCo*/ {0xE9},
      },
     {
@@ -103,7 +102,7 @@ static dCcD_SrcSph sSrcSph = {
     {
      /* mObjAt */ {AT_TYPE_PHYSICS, 0x10003, {0, 0, 0}, 4, 0, 0, 0, 0, 0},
      /* mObjTg */
-        {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_0x80000 | AT_TYPE_0x8000 | AT_TYPE_WIND),
+        {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_GLITTERING_SPORES | AT_TYPE_0x8000 | AT_TYPE_WIND),
          0x2000111,
          {0, 0xF, 0x407},
          0,
@@ -186,7 +185,7 @@ int dAcOBarrel_c::actorCreate() {
     }
     mSph.Set(sSrcSph);
     mSph.SetStts(mStts);
-    mObjAcch.OffClrSpeedY();
+    mObjAcch.SetClrSpeedY();
 
     mAcceleration = -4.f;
     mMaxSpeed = -40.f;
@@ -537,7 +536,7 @@ void dAcOBarrel_c::executeState_GrabUp() {
         dAcNpcCeFriend_c *pCeFriend = mCeFriend.get();
         if (0 == sLib::calcTimer(&field_0xE15)) {
             if ((pCeLady && pCeLady->fn_12_1C20(this)) || (pCeFriend && pCeFriend->fn_11_17C0(this))) {
-                getLinkage().fn_80050EA0(this);
+                getLinkage().forceRemove(this);
                 quat_0xD80 = quat_0xD60;
                 mStateMgr.changeState(StateID_Wait);
                 return;
@@ -827,7 +826,7 @@ void dAcOBarrel_c::initializeState_Rebirth() {
 
     mCyl.ClrCoSet();
     mCyl.ClrTgSet();
-    getLinkage().fn_80050EA0(this);
+    getLinkage().forceRemove(this);
 
     mStts.SetRank(0);
     setObjectProperty(OBJ_PROP_0x200);
@@ -1070,7 +1069,7 @@ void dAcOBarrel_c::fn_293_3DB0() {
 
 extern "C" void fn_800307E0(const mVec3_c &, s32);
 void dAcOBarrel_c::fn_293_4200() {
-    getLinkage().fn_80050EA0(this);
+    getLinkage().forceRemove(this);
 
     if (field_0xE04 || field_0xE05) {
         dAcNpcCeLady_c *pCeLady = mCeLady.get();

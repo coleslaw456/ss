@@ -52,7 +52,7 @@ STATE_DEFINE(dAcOtubo_c, Rebirth);
 dCcD_SrcSph dAcOtubo_c::sSphSrc = {
     /* mObjInf */
     {/* mObjAt */ {AT_TYPE_PHYSICS, 0x12, {0, 0, 0}, 2, 0, 0, 0, 0, 0},
-     /* mObjTg */ {~(AT_TYPE_BUGNET | AT_TYPE_0x80000 | AT_TYPE_0x8000), 0x801111, {0, 0xA, 0x40F}, 8, 0},
+     /* mObjTg */ {~(AT_TYPE_BUGNET | AT_TYPE_GLITTERING_SPORES | AT_TYPE_0x8000), 0x801111, {0, 0xA, 0x40F}, 8, 0},
      /* mObjCo */ {0x1E9}},
     /* mSphInf */
     {30.f},
@@ -284,9 +284,9 @@ void dAcOtubo_c::executeState_Grab() {
         dAcNpcCeLady_c *lady = mCeLady.get();
         dAcNpcCeFriend_c *ceFriend = mCeFriend.get();
         if (ceFriend && ceFriend->fn_11_17C0(this)) {
-            getLinkage().fn_80050EA0(this);
+            getLinkage().forceRemove(this);
         } else if (lady && lady->fn_12_1C20(this)) {
-            getLinkage().fn_80050EA0(this);
+            getLinkage().forceRemove(this);
         }
     }
 
@@ -403,7 +403,7 @@ void dAcOtubo_c::initializeState_Rebirth() {
     mSph.ClrCoSet();
     mSph.ClrTgSet();
     setObjectProperty(OBJ_PROP_0x200);
-    getLinkage().fn_80050EA0(this);
+    getLinkage().forceRemove(this);
 
     int item_drop_table = getParams2UpperByte();
     switch (item_drop_table) {
@@ -452,7 +452,7 @@ void dAcOtubo_c::destroy() {
         return;
     }
     fn_80022BE0(dLightEnv_c::GetPInstance(), mPosition);
-    getLinkage().fn_80050EA0(this);
+    getLinkage().forceRemove(this);
 
     dEmitterBase_c *fx_thing = dJEffManager_c::spawnEffect(
         PARTICLE_RESOURCE_ID_MAPPING_211_, mPositionCopy2, nullptr, nullptr, nullptr, nullptr, 0, 0
@@ -681,7 +681,7 @@ mVec3_c dAcOtubo_c::getCenter() const {
     mMtx_c m;
     m.ZXYrotS(mRotation.x, mRotation.y, mRotation.z);
     mVec3_c dir;
-    PSMTXMultVecSR(m, mVec3_c::Ey, dir);
+    MTXMultVecSR(m, mVec3_c::Ey, dir);
 
     return mPosition + dir * 28.f;
 }

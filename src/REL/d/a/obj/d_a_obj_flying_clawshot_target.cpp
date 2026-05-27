@@ -40,13 +40,13 @@ bool dAcOFlyingClawshotTarget_c::createHeap() {
 // clang-format off
 const cCcD_SrcGObj dAcOFlyingClawshotTarget_c::sColSrc = {
   /* mObjAt */ {0, 0, {0, 0, 0}, 0, 0, 0, 0, 0, 0},
-  /* mObjTg */ {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_0x80000 | AT_TYPE_0x8000 | AT_TYPE_WIND), 0x1080111, {0, 6, 0x407}, 0, 0},
+  /* mObjTg */ {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_GLITTERING_SPORES | AT_TYPE_0x8000 | AT_TYPE_WIND), 0x1080111, {0, 6, 0x407}, 0, 0},
   /* mObjCo */ {0x0}
 };
 // clang-format on
 
 int dAcOFlyingClawshotTarget_c::actorCreate() {
-    initAllocatorWork1Heap(-1, "dAcOFlyingClawshotTarget_c::m_allocator", 0x20);
+    CREATE_ALLOCATOR_UNCHECKED(dAcOFlyingClawshotTarget_c);
 
     mMdl.setPriorityDraw(0x7F, 0x7F);
     mWorldMtx.transS(mVec3_c::Zero);
@@ -85,7 +85,7 @@ int dAcOFlyingClawshotTarget_c::actorExecute() {
     dAcPy_c *player = dAcPy_c::LINK;
 
     mVec3_c markPoint;
-    PSMTXMultVec(mWorldMtx, mMarkPoint, markPoint);
+    MTXMultVec(mWorldMtx, mMarkPoint, markPoint);
 
     f32 dist_to = markPoint.squareDistance(player->mPosition);
 

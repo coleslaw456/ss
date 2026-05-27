@@ -53,10 +53,8 @@ dAcBase_c::dAcBase_c()
       mViewClipIdx(s_Create_ViewClipIdx),
       mActorNode(nullptr),
       mRoomID(s_Create_RoomId),
-      mActorSubtype(s_Create_Subtype) {
-    mJStudioActor = 0;
-    someStr[0] = 0;
-
+      mActorSubtype(s_Create_Subtype),
+      mJStudioActor(0) {
     if (s_Create_Position) {
         setPosition(*s_Create_Position);
     }
@@ -80,7 +78,7 @@ dAcBase_c::dAcBase_c()
     if (mpActorInfo == nullptr) {
         mpActorInfo = getActorInfoByProfileAndSubtype(mProfileName, mActorSubtype);
     }
-    someStr[0] = '\0';
+    mSomeStr.empty();
 }
 
 dAcBase_c::~dAcBase_c() {}
@@ -391,7 +389,7 @@ bool dAcBase_c::getDistanceToActor(dAcBase_c *actor, f32 distThresh, f32 *outDis
     bool isWithinThreshhold = false;
 
     if (actor != nullptr) {
-        distSquared = PSVECSquareDistance(mPosition, actor->mPosition);
+        distSquared = VECSquareDistance(mPosition, actor->mPosition);
 
         if (distSquared <= distThresh * distThresh) {
             isWithinThreshhold = true;
@@ -414,7 +412,7 @@ bool dAcBase_c::getDistanceAndAngleToActor(
     mAng angleToActorY(0), angleToActorX(0);
 
     if (actor != nullptr) {
-        distSquared = PSVECSquareDistance(mPosition, actor->mPosition);
+        distSquared = VECSquareDistance(mPosition, actor->mPosition);
         angleToActorY.set(cLib::targetAngleY(mPosition, actor->mPosition));
         angleToActorX.set(cLib::targetAngleX(mPosition, actor->mPosition));
 
@@ -453,11 +451,11 @@ bool dAcBase_c::getDistanceAndAngleToPlayer(
 }
 
 f32 dAcBase_c::getDistToPlayer() {
-    return EGG::Math<f32>::sqrt(PSVECSquareDistance(mPosition, dAcPy_c::LINK->mPosition));
+    return EGG::Math<f32>::sqrt(VECSquareDistance(mPosition, dAcPy_c::LINK->mPosition));
 }
 
 f32 dAcBase_c::getSquareDistToPlayer() {
-    return PSVECSquareDistance(mPosition, dAcPy_c::LINK->mPosition);
+    return VECSquareDistance(mPosition, dAcPy_c::LINK->mPosition);
 }
 
 // Some weirdness with the float registers being used

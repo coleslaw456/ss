@@ -4,6 +4,7 @@
 #include "c/c_math.h"
 #include "common.h"
 #include "d/a/d_a_player.h"
+#include "d/a/obj/d_a_obj_base.h"
 #include "d/col/bg/d_bg_s.h"
 #include "d/col/cc/d_cc_s.h"
 #include "d/flag/sceneflag_manager.h"
@@ -30,7 +31,7 @@ dCcD_SrcCps dAcODungeonShip_c::sCcSrc = {
     {
 
      {0, 0x1003E, {0, 0, 0}, 0, 0, 0, 0, 0, 0},
-     {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_0x80000 | AT_TYPE_0x8000 | AT_TYPE_WIND),
+     {~(AT_TYPE_BUGNET | AT_TYPE_BEETLE | AT_TYPE_GLITTERING_SPORES | AT_TYPE_0x8000 | AT_TYPE_WIND),
          0x111,
          {0, 0, 0x407},
          0,
@@ -116,9 +117,7 @@ int dAcODungeonShip_c::create() {
         mIsDocked = true;
     }
 
-    if (!initAllocatorWork1Heap(0x40000, "dAcODungeonShip_c::m_allocator", 0x20)) {
-        return FAILED;
-    }
+    CREATE_ALLOCATOR_SIZE(dAcODungeonShip_c, 0x40000);
 
     mPathIdx = mParams & 0xFF;
     if (mPathIdx == 0xFF) {
@@ -190,9 +189,7 @@ int dAcODungeonShip_c::actorExecute() {
     mAnmMatClr.play();
     mMdl.calc(false);
     if (field_0x8D8) {
-        mEffects[0].holdEffect(
-            PARTICLE_RESOURCE_ID_MAPPING_682_, mPosition, &mRotation, nullptr, nullptr, nullptr
-        );
+        mEffects[0].holdEffect(PARTICLE_RESOURCE_ID_MAPPING_682_, mPosition, &mRotation, nullptr, nullptr, nullptr);
     }
 
     if (field_0x8D9) {
