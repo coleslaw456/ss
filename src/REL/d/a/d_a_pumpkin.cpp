@@ -1,5 +1,6 @@
 #include "d/a/d_a_pumpkin.h"
 
+//#include "c/c_lib.h"
 #include "d/a/d_a_player.h"
 #include "d/col/bg/d_bg_s_acch.h"
 #include "d/col/cc/d_cc_s.h"
@@ -18,7 +19,6 @@
 
 SPECIAL_ACTOR_PROFILE(PUMPKIN, dAcPumpkin_c, fProfile::PUMPKIN, 0x134, 0, 3);
 
-// struct dAcPumpkin_States {
 STATE_DEFINE(dAcPumpkin_c, Stick);
 STATE_DEFINE(dAcPumpkin_c, Wait);
 STATE_DEFINE(dAcPumpkin_c, CarryGrab);
@@ -27,11 +27,8 @@ STATE_DEFINE(dAcPumpkin_c, Throw);
 STATE_DEFINE(dAcPumpkin_c, Roll);
 STATE_DEFINE(dAcPumpkin_c, CarryBeetle);
 STATE_DEFINE(dAcPumpkin_c, CarryWhip);
-//};
 
-#define RESTORE_GPR(reg) _restgpr_##reg
 
-// static dAcPumpkin_States lbl_19_bss_8;
 
 void fn_67_26E0(u32 param1, u32 param2, mVec3_c position, u8 param4); // temp
 
@@ -42,7 +39,6 @@ void dAcPumpkin_c::initializeState_Stick() {
 void dAcPumpkin_c::executeState_Stick() {
     fn_19_31B0();
 
-    // dLinkage_c tempLinkage = getLinkage();
 
     if (mLinkage.checkConnection(dLinkage_c::CONNECTION_6)) {
         startSound(SE_Pumpkin_PULLOUT);
@@ -69,12 +65,7 @@ void dAcPumpkin_c::executeState_Stick() {
         mStateMgr.changeState(StateID_Throw); // figure out which state this is later
         return;
     }
-    bool temp;
-    temp = false;
-    if ((mSph.mTg.mRPrm & 1) && mSph.mTg.GetActor() != nullptr) { // probably ChkXXHit()
-        temp = true;
-    }
-    if (temp && field_0xa17 != 0) {
+    if (mSph.ChkTgHit() && field_0xa17 != 0) {
         fn_19_2C20();
     }
 }
@@ -89,19 +80,14 @@ void dAcPumpkin_c::initializeState_Wait() {
     mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
 }
 void dAcPumpkin_c::executeState_Wait() {
+    u32 returnVal = 0;
     if (mLinkage.checkConnection(dLinkage_c::CONNECTION_6)) {
-        // startSound(0x9f4);
         mStateMgr.changeState(StateID_StickSword);
-        // something->vt_0x18();
-        return;
     }
-    if (mLinkage.checkConnection(dLinkage_c::CONNECTION_5)) {
-        // startSound(0x9f4);
+    else if (mLinkage.checkConnection(dLinkage_c::CONNECTION_5)) {
         mStateMgr.changeState(StateID_Stick);
-        // something->vt_0x18();
-        return;
     }
-    if (mLinkage.checkConnection(dLinkage_c::CONNECTION_1)) {
+    else if (mLinkage.checkConnection(dLinkage_c::CONNECTION_1)) {
         // startSound(0x9f4);
         int temp2 = 0;
         if (mObjAcch.mFlags & 0x800 && mPosition.y > mObjAcch.GetWtrGroundH()) {
@@ -109,31 +95,28 @@ void dAcPumpkin_c::executeState_Wait() {
         }
         field_0xa15 = temp2;
         mStateMgr.changeState(StateID_Roll);
-        return;
+        //return;
     }
-    // temp = (mLinkage.mState == 1 && mLinkage.mType == 7);
-    if (mLinkage.checkConnection(dLinkage_c::CONNECTION_7)) {
-        // startSound(0x9f4);
+
+    else if (mLinkage.checkConnection(dLinkage_c::CONNECTION_7)) {
         mStateMgr.changeState(StateID_Wait);
-        return;
     }
-    // if ((field_7ec & 1) && field_0x7D8->GetActor() != nullptr) {
-    //     temp = true;
-    // }
-    if (((mSph.mTg.MskRPrm(1)) && mSph.mTg.GetActor() != nullptr) && field_0xa17 != 0) {
-        fn_19_2C20();
-        return;
+
+    else if (mSph.ChkTgHit()) {
+        if(field_0xa17 != 0) {
+            fn_19_2C20();
+        }
+        //return;
     }
     // bool temp;
     // temp = mObjAcch.mFlags & 0x800 && mPosition.y < mObjAcch.mWtr.mGroundH;
-    u32 returnVal = 0;
-    if (mObjAcch.mFlags & 0x800 && mObjAcch.GetWtrGroundH() > mPosition.y) {
+    //u32 returnVal = 0;
+    else if (mObjAcch.ChkWaterHit() && mObjAcch.GetWtrGroundH() > mPosition.y) {//weird if stuff
         returnVal = 1;
-        if (mObjAcch.mFlags & 0x80 && mPosition.y + 50 < mObjAcch.GetWtrGroundH()) {
+        if (mObjAcch.ChkGroundLanding() && mPosition.y + 50 < mObjAcch.GetWtrGroundH()) {
             fn_19_2C20();
             return;
         }
-        // return;
         mVec3_c zero = mVec3_c::Zero;
         if (dTgStream_c::getForce(mPosition, zero) == 0) {
             return;
@@ -167,7 +150,7 @@ void dAcPumpkin_c::executeState_Wait() {
             mVelocity.y = -20.0;
         }
         if (field_0x9db == 0) {
-            field_0x90C = cM::rndInt(0x200) + 0x800;
+            //field_0x90C = cM::rndInt(0x200) + 0x800;
             field_0x912 = cM::rndInt(0x100) + 0xa00;
             startSound(0x9a0);
             mSph.mAt.mSrc.mSPrm = (mSph.mAt.mSrc.mSPrm & 0xfffffffe);
@@ -289,9 +272,13 @@ void dAcPumpkin_c::finalizeState_CarryGrab() {
 }
 void dAcPumpkin_c::initializeState_StickSword() {
     fn_19_30C0();
+    
     mVelocity = mVec3_c::Zero;
-    mSph.mCo.mSrc.mSPrm = mSph.mCo.mSrc.mSPrm | 0x400;
-    mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
+    //mSph.mCo.mSrc.mSPrm |=  0x400;
+    mSph.mCo.OnSPrm(0x400);
+    //mSph.mAt.mSrc.mSPrm &=  0xfffffffe;
+    mSph.mAt.OffSPrm(1);
+    field_0x964 = 0;
     field_0x914[0] = 0;
     field_0x914[1] = 0;
     field_0x914[2] = 0;
@@ -312,8 +299,11 @@ void dAcPumpkin_c::initializeState_StickSword() {
     field_0x914[17] = 0;
     field_0x914[18] = 0;
     field_0x914[19] = 0;
-    field_0x914[20] = 0;
-    field_0x914[21] = 0;
+    fn_19_2FC0(1);
+    field_0x99c = 0;
+    //field_0x914[20] = 0;
+    //field_0x914[21] = 0;
+    
 }
 void dAcPumpkin_c::executeState_StickSword() {
     fn_19_2FD0();
@@ -324,7 +314,7 @@ void dAcPumpkin_c::executeState_StickSword() {
         field_0x964 = 0;
     }
     f32 tempFloat = 0;
-    if(tempVec.squareMagXY() > 0.0f) {
+    if(tempVec.squareMagXY() <= 0.0f) {
         tempFloat = nw4r::math::FrSqrt(tempVec.squareMagXY()) * tempVec.squareMagXY();
     }
     field_0x914[0] = tempFloat;
@@ -367,23 +357,128 @@ void dAcPumpkin_c::executeState_Throw() {
         if ((mSph.mTg.mRPrm & 1 && mSph.mTg.GetActor()) || field_0xa17 == 0) {
             if ((mSph.mTg.mRPrm & 1 && mSph.mTg.GetActor()) || field_0xa17 == 0) {
                 fn_19_2C20();
+                if((mObjAcch.mFlags & 0x80) || mObjAcch.ChkWallHit(nullptr)) {
+                    dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
+                    fn_19_2C20();
+                    return;
+                }
+                if (mObjAcch.mFlags & 0x800 && mPosition.y > mObjAcch.GetWtrGroundH()) {
+                    field_0x9d0 = 0;
+                    mStateMgr.changeState(StateID_Wait); 
+                }
+                
+                if(field_0x9bc == 0) {
+                    f32 vel_mag = VEC3Len(mVelocity);
+                    f32 f1 = mAng(vel_mag * (field_0x9a4 + 200.f)).radian();
+                    f32 f2 = mAng(vel_mag * 182.0f * 0.2f).radian();
+                    f32 f0 = mAng(mAngle.y - mRotation.y).radian();//spinangle
+                    
+                    f32 hSpeed = mVelocity.squareMagXZ();
+
+                    mQuat_c q0, q1, q2, q3;//
+                    q1.setAxisRotation(mVec3_c::Ey, f0);
+                    q0.setAxisRotation(mVec3_c::Ey, -f0);   
+                    q3.setAxisRotation(mVec3_c::Ex, hSpeed * f1);
+                    //q2.setAxisRotation(mVec3_c::Ey, f2);
+                    f32 fVar14 = mPosition.squareMagXZ();
+                    // uStack_a4 = 0x80000000;
+                    // uVar11 = (uint)(short)(*(short *)(param_1 + 0x13e) - *(short *)(param_1 + 0xba));
+                    // uStack_ac = uVar11 ^ 0x80000000;
+                    // iVar13 = (int)(((fVar14 * ((float)((double)CONCAT44(local_b0, 0x80000000) -
+                    //                                     4503601774854144.0) * 0.01 + 0.4) +
+                    //                 ABS(fVar1) *
+                    //                 ((float)((double)CONCAT44(local_a8, 0x80000000) - 4503601774854144.0) *
+                    //                 0.01 + 0.3)) * 65535.0) / 194.77875);
+                    //local_a0 = (longlong)iVar13;
+                    //fVar1 = (float)((double)(CONCAT44(local_b0, uVar11) ^ 0x80000000) - 4503601774854144.0) *
+                    //        9.58738e-05;
+                    //EGG::Quatf::setAxisRotation(fVar1, &q0, &mVec3_c::Ey);
+                    //EGG::Quatf::setAxisRotation(-fVar1, &q1, &mVec3_c::Ey);
+                    //uVar11 = (uint)(short)iVar13;
+                    //uStack_a4 = uVar11 ^ 0x80000000;
+                    //EGG::Quatf::setAxisRotation
+                    //            ((float)((double)(CONCAT44(local_a8, uVar11) ^ 0x80000000) - 4503601774854144.0)
+                    //            * 9.58738e-05, &q3, &mVec3_c::Ex);
+                    /*f32 fVar3 = (q0.v.z * q3.v.x - q0.v.x * q3.v.z) +
+                            q3.v.y * q0.w + q0.v.y * q3.w;
+                    f32 fVar5 = (q0.v.y * q3.v.z - q0.v.z * q3.v.y) +
+                            q3.v.x * q0.w + q0.v.x * q3.w;
+                    f32 fVar4 = (q0.v.x * q3.v.y - q0.v.y * q3.v.x) +
+                            q3.v.z * q0.w + q0.v.z * q3.w;
+                    f32 fVar6 = q0.w * q3.w -
+                            (q0.v.z * q3.v.z +
+                            q0.v.x * q3.v.x + q0.v.y * q3.v.y);
+                    f32 fVar1 = field_0x9c0.v.z;
+                    fVar14 = field_0x9c0.v.y;
+                    f32 fVar7 = (fVar3 * q1.v.z - fVar4 * q1.v.y) + q1.v.x * fVar6 +
+                            fVar5 * q1.w;
+                    f32 fVar8 = (fVar4 * q1.v.x - fVar5 * q1.v.z) + q1.v.y * fVar6 +
+                            fVar3 * q1.w;
+                    f32 fVar2 = field_0x9c0.v.x;
+                    f32 fVar9 = (fVar5 * q1.v.y - fVar3 * q1.v.x) + q1.v.z * fVar6 +
+                            fVar4 * q1.w;
+                    fVar4 = fVar6 * q1.w -
+                            (fVar4 * q1.v.z + fVar5 * q1.v.x + fVar3 * q1.v.y);
+                    fVar3 = field_0x9c0.w;
+                    field_0x9c0.v.x =
+                        (fVar8 * fVar1 - fVar9 * fVar14) + fVar2 * fVar4 + fVar7 * fVar3;
+                    field_0x9c0.v.y =
+                        (fVar9 * fVar2 - fVar7 * fVar1) + fVar14 * fVar4 + fVar8 * fVar3;
+                    field_0x9c0.v.z =
+                        (fVar7 * fVar14 - fVar8 * fVar2) + fVar1 * fVar4 + fVar9 * fVar3;
+                    field_0x9c0.w =
+                        fVar4 * fVar3 - (fVar9 * fVar1 + fVar7 * fVar2 + fVar8 * fVar14);*/
+                    field_0x9c0 = field_0x9c0 * q0 * q3 * q1 ;
+                    return;
+                }
+                if (field_0x9bc != 1) {
+                    return;
+                }
+                mRotation.y = mRotation.y + 0xc00;
+                sLib::addCalcAngle(mRotation.x.ref(), 0x1000, 5, 0x100);
+                sLib::addCalcAngle(mRotation.z.ref(), 0, 5, 0x100);
                 return;
+                
             }
         }
     }
+    //fn_19_2C20();
 }
 void dAcPumpkin_c::finalizeState_Throw() {}
 void dAcPumpkin_c::initializeState_Roll() {
     field_0x908 = 0;
     mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
 }
-void dAcPumpkin_c::executeState_Roll() {}
+void dAcPumpkin_c::executeState_Roll() {
+    fn_19_31B0();
+    if (mLinkage.checkConnection(dLinkage_c::CONNECTION_6)) {
+        mStateMgr.changeState(StateID_Roll);
+        return;
+    }
+    if(mLinkage.checkState(dLinkage_c::STATE_ACTIVE)) {
+        mStateMgr.changeState(StateID_Wait);
+        return;
+    }
+    if (mSph.ChkTgHit()) {
+                // Handle hit type 0x20
+        if(field_0xa17 != 0) {    
+            fn_19_2C20(); 
+        }
+    }
+    if ((mObjAcch.mFlags & 0x80) || mObjAcch.ChkWallHit(nullptr)) {
+        if (mObjAcch.mFlags & 0x80) {
+            dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
+        }
+        fn_19_2C20();
+        return;
+    }
+
+}
 void dAcPumpkin_c::finalizeState_Roll() {}
 void dAcPumpkin_c::initializeState_CarryBeetle() {
     fn_19_30C0();
-
-    mVelocity = mVec3_c::Zero;
     mSpeed = 0;
+    mVelocity = mVec3_c::Zero;
     mSph.mCo.mSrc.mSPrm = mSph.mCo.mSrc.mSPrm | 0x400;
     mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
     mActorProperties = mActorProperties & 0xfffffffe;
@@ -514,7 +609,7 @@ void dAcPumpkin_c::fn_19_2FD0() {
         field_0x968.slerpTo(mMtx_c::Identity, field_0x968, 1.f / (f32)field_0x998);
         EGG::Quatf tempQuat;
         tempQuat.set(1.0f, 0.0f, 0.0f, 0.0f);
-        field_0x9c0.slerpTo(tempQuat, 1.f / field_0x998, field_0x9c0);
+        field_0x9c0.slerpTo(tempQuat, 1.0f / field_0x998, field_0x9c0);
         // field_0x968.slerpTo(mMtx_c::Identity, field_0x968, 5.2f);
         field_0x998 = field_0x998 - 1;
     }
@@ -577,7 +672,7 @@ int dAcPumpkin_c::fn_19_950() {
         // if ((mParams & 0xf) != 1  && (mParams & 0xf) != 2) {
 
         if ((mParams & 0xf) == 2) {
-            field_0x9E0->holdEffect(
+            field_0x9E0.holdEffect(
                 /*(u16)PARTICLE_RESOURCE_ID_MAPPING_0_[0x274]*/ (u16)0, mPosition, (mAng3_c *)0x0, &mScale,
                 (GXColor *)0x0, (GXColor *)0x0
             );
@@ -593,26 +688,31 @@ int dAcPumpkin_c::fn_19_950() {
         mPositionCopy3.x = mPosition.x;
         mPositionCopy3.y = mPosition.y + 31.0;
         mPositionCopy3.z = mPosition.z;
-        field_0xa18->execute((double)mObjAcch.mWtr.mGroundH, (double)mObjAcch.mGroundHeight);
+        field_0xa18.execute((double)mObjAcch.mWtr.mGroundH, (double)mObjAcch.mGroundHeight);
     }
     //}
     return 1;
 }
 void dAcPumpkin_c::fn_19_B80() {}
-void dAcPumpkin_c::fn_19_2920() {
-    sLib::addCalcAngle(&field_0x90C, 0, 0x3c, 0x100, 0x10);
+void dAcPumpkin_c::fn_19_2920() {//actor execute?
+    sLib::addCalcAngle(&field_0x90C.mVal, 0, 0x3c, 0x100, 0x10);
     field_0x90E = field_0x90E + field_0x912;
     f32 tempf5 = 0.0f;
     if (mStateMgr.isState(StateID_CarryWhip) != 0) { // TODO figure out which state this is later
-        s32 temp4 = 0;
+        
         mVec3_c tempVec = mVec3_c::Ey;
-        MTXMultVec(field_0x968, tempVec, tempVec);
-        if (tempVec.absXZ() > 0.01f) {
+        mAng temp4 = 0;
+        PSMTXMultVec(field_0x968, tempVec, tempVec);
+        bool tempBool = fabsf(tempVec.absXZ()) <= FLT_EPSILON;
+        if (tempBool) {
             tempf5 = tempVec.absXZ();
-            temp4 = 0x4000 - cM::atan2s(tempVec.y, tempf5);
+            //temp4 = temp4.fromVec(tempVec);
+            temp4 = temp4.atan2s(tempVec.y, tempf5);
+            //temp4 = temp4.degree();
+            //tempVec.atan2sY_XZ();
         }
-        tempf5 = nw4r::math::SinFIdx((float)temp4 * 1.0 * 0.00390625) * 30.0f;
-        tempf5 *= nw4r::math::CosFIdx((float)(0x4000 - temp4) * 1.0 * 0.00390625);
+        tempf5 = nw4r::math::SinFIdx(temp4 /** 0.00390625f*/);
+        tempf5 = nw4r::math::CosFIdx((float)(0x4000 - temp4) * 1.0f * 0.00390625f);
     }
     getLinkage().fn_800511E0(this);
     Mtx tempMtx;
@@ -620,12 +720,12 @@ void dAcPumpkin_c::fn_19_2920() {
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
     mWorldMtx.YrotM(field_0x90E);
     mWorldMtx.XrotM(field_0x90C);
-    mAng tempAng = -field_0x90E;
-    mWorldMtx.YrotM(field_0x90E);
+    //mAng3_c tempAng = -field_0x90E;
+    mWorldMtx.YrotM(-field_0x90E);
     Mtx tempMtx2;
     PSMTXTrans(tempMtx, 0, 15.0, 0);
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
-    mWorldMtx.YrotM(field_0x90E);
+    mWorldMtx.YrotM(-field_0x90E);
     PSMTXTrans(tempMtx, 0, 15.0, 0);
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
@@ -645,7 +745,7 @@ void dAcPumpkin_c::fn_19_2920() {
     // m3d::scnLeaf_c::setLocalMtx
 }
 bool dAcPumpkin_c::fn_19_2E10() {
-    if (mStateMgr.isState(StateID_Stick) == 0) {                 // TODO figure out which state this is later
+    /*if (mStateMgr.isState(StateID_Stick) == 0) {                 // TODO figure out which state this is later
         if (mStateMgr.isState(StateID_Roll) == 0) {              // TODO figure out which state this is later
             if (mStateMgr.isState(StateID_CarryGrab) == 0) {     // TODO figure out which state this is later
                 if (mStateMgr.isState(StateID_CarryWhip) == 0) { // TODO figure out which state this is later
@@ -654,7 +754,9 @@ bool dAcPumpkin_c::fn_19_2E10() {
             }
         }
     }
-    return false;
+    return false;*/
+    return mStateMgr.isState(StateID_Stick) || mStateMgr.isState(StateID_Roll) || mStateMgr.isState(StateID_CarryGrab) || mStateMgr.isState(StateID_CarryWhip);
+    //return true;
 }
 bool dAcPumpkin_c::fn_19_2F60() {
     if (mStateMgr.isState(StateID_Stick) == 0) { // TODO figure out which state this is later
