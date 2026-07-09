@@ -26,6 +26,8 @@ STATE_DEFINE(dLytDemoTitle_c, Move);
 STATE_DEFINE(dLytDemoTitle_c, Out);
 STATE_DEFINE(dLytDemoTitle_c, End);
 
+dLytDemoTitle_c *dLytDemoTitle_c::sInstance;
+
 void dLytDemoTitleMain_c::initializeState_ModeNone() {
     return;
 }
@@ -104,7 +106,7 @@ static const d2d::LytBrlanMapping brlanMap[] = {
     {"demoTitle_00_out.brlan", "G_inOut_00"},
 };
 
-bool dLytDemoTitleMain_c::fn_802B0760(d2d::ResAccIf_c *resAcc) {
+bool dLytDemoTitleMain_c::build(d2d::ResAccIf_c *resAcc) {
     mLytBase.setResAcc(resAcc);
     mLytBase.build("demoTitle_00.brlyt", nullptr);
     mLytBase.setPriority(0x86);
@@ -279,18 +281,23 @@ void dLytDemoTitle_c::finalizeState_None() {
     return;
 }
 
-dLytDemoTitle_c::dLytDemoTitle_c() : mStateMgr(*this) {}
-
-dLytDemoTitleMain_c::~dLytDemoTitleMain_c() {}
+SPECIAL_BASE_PROFILE(LYT_DEMO_TITLE, dLytDemoTitle_c, fProfile::LYT_DEMO_TITLE, 0x2BA, 0);
 
 extern "C" char *lbl_805759D0;
 
-bool dLytDemoTitle_c::fn_802B1270(){
+const d2d::LytBrlanMapping lbl_804EFAA0[] = {
+    { "in",   "G_inOut_00" },
+    { "loop", "G_loop_00" },
+    { "out",  "G_inOut_00" },
+};
+
+bool dLytDemoTitle_c::build() {
+    d2d::LytBrlanMapping x = lbl_804EFAA0[0];
     sInstance = this;
-    
+
     resAcc.attach(LayoutArcManager::GetInstance()->getLoadedData("DemoTitle"), "");
 
-    mMain.fn_802B0760(&resAcc);
+    mMain.build(&resAcc);
     mStateMgr.changeState(StateID_None);
     mIsAnimating = true;
     field_0x58d = false;
@@ -310,15 +317,13 @@ bool dLytDemoTitle_c::fn_802B1300() {
 bool dLytDemoTitle_c::fn_802B13A0() {
     if (*mStateMgr.getStateID() != StateID_None) {
         mMain.fn_802B0950();
-    }    
+    }
     return true;
 }
 
 bool dLytDemoTitle_c::fn_802B1410() {
     mMain.fn_802B0980();
     resAcc.detach();
-    lbl_805759D0=0;
+    lbl_805759D0 = 0;
     return true;
 }
-
-dLytDemoTitle_c::~dLytDemoTitle_c() {}

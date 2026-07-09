@@ -6,13 +6,12 @@
 #include "s/s_State.hpp"
 #include "s/s_StateID.hpp"
 
-
 class dLytDemoTitleMain_c {
 public:
     dLytDemoTitleMain_c();
-    virtual ~dLytDemoTitleMain_c();
+    virtual ~dLytDemoTitleMain_c() {};
 
-    bool fn_802B0760(d2d::ResAccIf_c *resAcc);
+    bool build(d2d::ResAccIf_c *resAcc);
     bool fn_802B0860();
     bool fn_802B0950();
     bool fn_802B0980();
@@ -21,7 +20,6 @@ public:
     void fn_802B0B00();
     void fn_802B0B50();
     void fn_802B0BD0();
-    void fn_802B0C20();
 
     bool getmIsAnimating() {
         return mIsAnimating;
@@ -46,22 +44,22 @@ private:
 
 class dLytDemoTitle_c : public dLytBase_c {
 public:
-    dLytDemoTitle_c();
-    virtual ~dLytDemoTitle_c();
+    dLytDemoTitle_c() : mStateMgr(*this) {}
+    virtual ~dLytDemoTitle_c() {}
 
-    bool fn_802B1270();
+    virtual bool build() override;
     bool fn_802B1300();
     bool fn_802B13A0();
     bool fn_802B1410();
 
 private:
-    static dLytDemoTitle_c *sInstance;
-
     STATE_FUNC_DECLARE(dLytDemoTitle_c, None);
     STATE_FUNC_DECLARE(dLytDemoTitle_c, In);
     STATE_FUNC_DECLARE(dLytDemoTitle_c, Move);
     STATE_FUNC_DECLARE(dLytDemoTitle_c, Out);
     STATE_FUNC_DECLARE(dLytDemoTitle_c, End);
+
+    static dLytDemoTitle_c *sInstance;
 
     /* 0x08c */ UI_STATE_MGR_DECLARE(dLytDemoTitle_c);
     /* 0x040 */ d2d::ResAccIf_c resAcc;
