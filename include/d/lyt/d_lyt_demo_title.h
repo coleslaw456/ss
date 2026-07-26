@@ -12,9 +12,9 @@ public:
     virtual ~dLytDemoTitleMain_c() {};
 
     bool build(d2d::ResAccIf_c *resAcc);
-    bool fn_802B0860();
-    bool fn_802B0950();
-    bool fn_802B0980();
+    bool execute();
+    bool draw();
+    bool remove();
     void fn_802B09F0();
     void fn_802B0A50();
     void fn_802B0B00();
@@ -47,10 +47,10 @@ public:
     dLytDemoTitle_c() : mStateMgr(*this) {}
     virtual ~dLytDemoTitle_c() {}
 
-    virtual bool build() override;
-    bool fn_802B1300();
-    bool fn_802B13A0();
-    bool fn_802B1410();
+    virtual int create() override;
+    virtual int execute() override;
+    virtual int draw() override;
+    virtual int doDelete() override;
 
 private:
     STATE_FUNC_DECLARE(dLytDemoTitle_c, None);
@@ -58,6 +58,8 @@ private:
     STATE_FUNC_DECLARE(dLytDemoTitle_c, Move);
     STATE_FUNC_DECLARE(dLytDemoTitle_c, Out);
     STATE_FUNC_DECLARE(dLytDemoTitle_c, End);
+
+    STATE_MGR_DEFINE_UTIL_INSTANCIATE_STATE(dLytDemoTitle_c);
 
     static dLytDemoTitle_c *sInstance;
 
