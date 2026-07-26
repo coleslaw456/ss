@@ -1755,17 +1755,21 @@ d/lyt/d_lyt_deposit.cpp:
 d/lyt/d_lyt_demo_title.cpp:
 	.text       start:0x802B02D0 end:0x802B22E8 align:16
 	.ctors      start:0x804DB88C end:0x804DB890
-	.rodata     start:0x804EFA90 end:0x804EFAB8
+	.rodata     start:0x804EFA90 end:0x804EFAA0
 	.data       start:0x8053DFC8 end:0x8053E510
+	.sdata      start:0x80573C30 end:0x80573C38
 	.sbss       start:0x805759D0 end:0x805759D8
+	.sdata2     start:0x8057C7E0 end:0x8057C7E8
 	.bss        start:0x805B7120 end:0x805B73A0
 
 d/lyt/d_lyt_end_roll.cpp:
 	.text       start:0x802B22F0 end:0x802B6B98 align:16
 	.ctors      start:0x804DB890 end:0x804DB894
-	.rodata     start:0x804EFAB8 end:0x804EFAE0
+	.rodata     start:0x804EFAA0 end:0x804EFAE0
 	.data       start:0x8053E510 end:0x8053F0F8
+	.sdata      start:0x80573C38 end:0x80573C58
 	.sbss       start:0x805759D8 end:0x805759E0
+	.sdata2     start:0x8057C7E8 end:0x8057C818
 	.bss        start:0x805B73A0 end:0x805B7B20
 
 toBeSorted/d_a_bullet.cpp:

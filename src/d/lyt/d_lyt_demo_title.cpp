@@ -5,8 +5,6 @@
 #include "d/d_stage_mgr.h"
 #include "d/d_sys.h"
 #include "d/lyt/d2d.h"
-#include "d/lyt/d_lyt_deposit.h"
-#include "d/lyt/d_lyt_map_global.h"
 #include "toBeSorted/arc_managers/layout_arc_manager.h"
 
 extern "C" u32 lbl_805B7120;
@@ -129,7 +127,7 @@ bool dLytDemoTitleMain_c::build(d2d::ResAccIf_c *resAcc) {
     return true;
 }
 
-bool dLytDemoTitleMain_c::fn_802B0860() {
+bool dLytDemoTitleMain_c::execute() {
     mLytBase.getLayout()->GetRootPane()->SetInfluencedAlpha(true);
     mLytBase.getLayout()->GetRootPane()->SetAlpha(255 - dStage_c::GetInstance()->getFader().getColorFaderAlpha());
 
@@ -146,12 +144,12 @@ bool dLytDemoTitleMain_c::fn_802B0860() {
     return true;
 }
 
-bool dLytDemoTitleMain_c::fn_802B0950() {
+bool dLytDemoTitleMain_c::draw() {
     mLytBase.addToDrawList();
     return true;
 }
 
-bool dLytDemoTitleMain_c::fn_802B0980() {
+bool dLytDemoTitleMain_c::remove() {
     dStageMgr_c::GetInstance()->unsetFlags0x88a0(0xfffffffe);
 
     mLytBase.unbindAnims();
@@ -201,15 +199,31 @@ void dLytDemoTitleMain_c::fn_802B0BD0() {
     return;
 }
 
+void dLytDemoTitle_c::initializeState_None() {
+    return;
+}
+
+void dLytDemoTitle_c::executeState_None() {
+    if (mIsAnimating) {
+        mMain.fn_802B0A50();
+        mStateMgr.changeState(StateID_In);
+        mIsAnimating = false;
+    }
+    return;
+}
+
+void dLytDemoTitle_c::finalizeState_None() {
+    return;
+}
+
 void dLytDemoTitle_c::initializeState_In() {
     return;
 }
 
 void dLytDemoTitle_c::executeState_In() {
-    if (mIsAnimating) {
-        mMain.fn_802B0A50();
-        mStateMgr.changeState(StateID_In);
-        mIsAnimating = false;
+    if (mMain.getmIsAnimating()) {
+        mMain.fn_802B0B00();
+        mStateMgr.changeState(StateID_Move);
     }
     return;
 }
@@ -223,9 +237,10 @@ void dLytDemoTitle_c::initializeState_Move() {
 }
 
 void dLytDemoTitle_c::executeState_Move() {
-    if (mMain.getmIsAnimating()) {
-        mMain.fn_802B0B00();
-        mStateMgr.changeState(StateID_Move);
+    if (mMain.getmIsAnimating() && field_0x58d) {
+        mMain.fn_802B0B50();
+        mStateMgr.changeState(StateID_Out);
+        field_0x58d = false;
     }
     return;
 }
@@ -239,11 +254,12 @@ void dLytDemoTitle_c::initializeState_Out() {
 }
 
 void dLytDemoTitle_c::executeState_Out() {
-    if (mMain.getmIsAnimating() && field_0x58d) {
-        mMain.fn_802B0B50();
-        mStateMgr.changeState(StateID_Out);
-        field_0x58d = false;
+    if (mMain.getmIsAnimating()) {
+        deleteRequest();
+        mMain.fn_802B0BD0();
+        mStateMgr.changeState(StateID_End);
     }
+
     return;
 }
 
@@ -256,12 +272,6 @@ void dLytDemoTitle_c::initializeState_End() {
 }
 
 void dLytDemoTitle_c::executeState_End() {
-    if (mMain.getmIsAnimating()) {
-        deleteRequest();
-        mMain.fn_802B0BD0();
-        mStateMgr.changeState(StateID_End);
-    }
-
     return;
 }
 
@@ -269,30 +279,9 @@ void dLytDemoTitle_c::finalizeState_End() {
     return;
 }
 
-void dLytDemoTitle_c::initializeState_None() {
-    return;
-}
-
-void dLytDemoTitle_c::executeState_None() {
-    return;
-}
-
-void dLytDemoTitle_c::finalizeState_None() {
-    return;
-}
-
 SPECIAL_BASE_PROFILE(LYT_DEMO_TITLE, dLytDemoTitle_c, fProfile::LYT_DEMO_TITLE, 0x2BA, 0);
 
-extern "C" char *lbl_805759D0;
-
-const d2d::LytBrlanMapping lbl_804EFAA0[] = {
-    { "in",   "G_inOut_00" },
-    { "loop", "G_loop_00" },
-    { "out",  "G_inOut_00" },
-};
-
-bool dLytDemoTitle_c::build() {
-    d2d::LytBrlanMapping x = lbl_804EFAA0[0];
+int dLytDemoTitle_c::create() {
     sInstance = this;
 
     resAcc.attach(LayoutArcManager::GetInstance()->getLoadedData("DemoTitle"), "");
@@ -301,29 +290,29 @@ bool dLytDemoTitle_c::build() {
     mStateMgr.changeState(StateID_None);
     mIsAnimating = true;
     field_0x58d = false;
-    return true;
+    return SUCCEEDED;
 }
 
-bool dLytDemoTitle_c::fn_802B1300() {
+int dLytDemoTitle_c::execute() {
     if (*mStateMgr.getStateID() != StateID_None) {
-        mMain.fn_802B0860();
+        mMain.execute();
     }
 
     mStateMgr.executeState();
 
-    return true;
+    return SUCCEEDED;
 }
 
-bool dLytDemoTitle_c::fn_802B13A0() {
+int dLytDemoTitle_c::draw() {
     if (*mStateMgr.getStateID() != StateID_None) {
-        mMain.fn_802B0950();
+        mMain.draw();
     }
-    return true;
+    return SUCCEEDED;
 }
 
-bool dLytDemoTitle_c::fn_802B1410() {
-    mMain.fn_802B0980();
+int dLytDemoTitle_c::doDelete() {
+    mMain.remove();
     resAcc.detach();
-    lbl_805759D0 = 0;
-    return true;
+    sInstance = nullptr;
+    return SUCCEEDED;
 }
