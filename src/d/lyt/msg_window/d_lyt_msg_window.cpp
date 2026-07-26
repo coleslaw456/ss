@@ -752,7 +752,7 @@ bool dLytMsgWindow_c::setCurrentLabelName(const char *name, bool storeFile) {
         if (field_0x80E) {
             int i = 0;
             const char *p;
-            bool found = 0;
+            bool found = false;
             for (p = name; *p != '\0'; p++) {
                 if (found) {
                     if (idx == -1) {
