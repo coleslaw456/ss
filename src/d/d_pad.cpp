@@ -225,7 +225,7 @@ void beginPad_BR() {
         if ((dCsGame_c::GetInstance() != nullptr && dCsGame_c::GetInstance()->shouldDraw() && !ex.field_0x22D0) ||
             (dAcPy_c::GetLink() != nullptr &&
              dAcPy_c::GetLink()->checkActionFlagsCont(0x400 | 0x100 | 0x80 | 0x40 | 0x10 | 0x4 | 0x2 | 0x1) &&
-             !dAcPy_c::GetLink()->vt_0x1C0() && !dLytMeter_c::GetMain()->getField_0x1377F()) ||
+             !dAcPy_c::GetLink()->getBeetleInFlight() && !dLytMeter_c::GetMain()->getField_0x1377F()) ||
             ex.field_0x22CF) {
             if (dLytControlGame_c::getInstance() && dLytControlGame_c::getInstance()->isStateNormal()) {
                 if (!(dPadManager_c::GetInstance() && dPadManager_c::GetInstance()->getField_0x25())) {
@@ -850,7 +850,7 @@ void ex_c::acc_c::fn_800576D0(s32 chan) {
                 f32 f = acc.dot(dir);
                 if (!cM3d_IsZero(cross.squaredLength())) {
                     cross.normalize();
-                    f32 acos = std::acosf(f);
+                    f32 acos = std::acos(f);
                     MTXRotAxisRad(field_0x1098, cross, acos);
                     // TODO - bad part end
                 } else {
