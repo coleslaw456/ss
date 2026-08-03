@@ -467,9 +467,25 @@ void dAcPumpkin_c::executeState_Roll() {
     }
     if ((mObjAcch.mFlags & 0x80) || mObjAcch.ChkWallHit(nullptr)) {
         if (mObjAcch.mFlags & 0x80) {
-            dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
+            if(field_0x908 > -150.0f) {
+                dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
+                fn_19_2C20();
+                
+            }
+            else {
+                AttentionManager::GetInstance()->addPickUpTarget(*this, 120.0f);
+                AttentionManager::GetInstance()->addUnk3Target(*this, 1, 500.0f, -200.0f, 200.0f);
+            }
+            field_0x908 = 0;
+            mSpeed *= 0.98f;
+            if(mSpeed < 1.0f) {
+                mSpeed = 0;
+            }
         }
-        fn_19_2C20();
+        if(field_0x99c == 0) {
+            
+            field_0x9b4 += field_0x9b4 * 0.05f;
+        }
         return;
     }
 
