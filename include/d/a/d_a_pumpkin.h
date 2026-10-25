@@ -11,6 +11,7 @@
 #include "egg/math/eggMath.h"
 #include "d/d_shadow.h"
 
+//extern u32 lbl_19_data_70[6];//temp
 
 class dAcPumpkin_c : public dAcObjBase_c {
 public:
@@ -47,6 +48,8 @@ public:
 
     bool angleToRotate(const mVec3_c& vec);//temp
 
+    
+
 private:
     /* 0x330*/ m3d::smdl_c field_0x330;
     /* 0x34C*/ m3d::smdl_c field_0x34C;
@@ -59,19 +62,23 @@ private:
     //everything above should be offset correctly.
     /* 0x90C?*/ mAng field_0x90C;
     /* 0x90E?*/ mAng field_0x90E;
+    /* 0x910?*/ s16 field_0x910;//placeholder for now
     /* 0x912?*/ s16 field_0x912;
-    /* 0x914?*/ float field_0x914[21];
+    /* 0x914?*/ f32 field_0x914[20];
     /* 0x964?*/ s32 field_0x964;
     /* 0x968?*/ mMtx_c field_0x968;
     /* 0x998?*/ s32 field_0x998;
     /* 0x99c?*/ u8 field_0x99c;
-    /* 0x99e?*/ u16 field_0x99e;
-    /* 0x9a0?*/ s16 field_0x9a0;
+    /* 0x99e?*/ s16 field_0x99e;
+    /* 0x9a0?*/ mAng field_0x9a0;
     /* 0x9a4?*/ f32 field_0x9a4;
     /* 0x9a8?*/ f32 field_0x9a8;
+    /* 0x9ae?*/ f32 field_0x9ae;
+    /* 0x9b0?*/ mAng field_0x9b0;
+    /* 0x9b2?*/ s16 field_0x9b2;
     /* 0x9b4?*/ s16 field_0x9b4;
     /* 0x9b6?*/ u8 field_0x9b6;
-    /* 0x9b8?*/ s16 field_0x9b8;
+    /* 0x9b8?*/ s32 field_0x9b8;//possibly unsigned
     /* 0x9bc?*/ u8 field_0x9bc;
     /* 0x9c0?*/ mQuat_c field_0x9c0;
     /* 0x9d0?*/ u8 field_0x9d0;

@@ -1,6 +1,7 @@
 #include "d/a/d_a_pumpkin.h"
 
 //#include "c/c_lib.h"
+#include "c/c_math.h"
 #include "d/a/d_a_player.h"
 #include "d/col/bg/d_bg_s_acch.h"
 #include "d/col/cc/d_cc_s.h"
@@ -16,6 +17,17 @@
 #include "toBeSorted/event_manager.h"
 #include "d/d_pad.h"
 
+/*static volatile u8 lbl_19_data_70[] = { // temp
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x01, 0x20
+};
+
+static volatile u16 lbl_19_data_70[] = { // temp
+    0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00,
+    0x0c00, 0x00, 0x0020, 0x0000, 0x0120
+};*/
+
+
 
 SPECIAL_ACTOR_PROFILE(PUMPKIN, dAcPumpkin_c, fProfile::PUMPKIN, 0x134, 0, 3);
 
@@ -28,12 +40,17 @@ STATE_DEFINE(dAcPumpkin_c, Roll);
 STATE_DEFINE(dAcPumpkin_c, CarryBeetle);
 STATE_DEFINE(dAcPumpkin_c, CarryWhip);
 
+//f32
+
+static volatile u32 lbl_19_data_70[6] = { // temp
+    0x0, 0x0,  0x0, 0xc00, 0x20, 0x120
+};
 
 
 void fn_67_26E0(u32 param1, u32 param2, mVec3_c position, u8 param4); // temp
 
 void dAcPumpkin_c::initializeState_Stick() {
-    mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
+    mSph.mAt.OffSPrm(1);
 }
 
 void dAcPumpkin_c::executeState_Stick() {
@@ -59,7 +76,7 @@ void dAcPumpkin_c::executeState_Stick() {
         return;
     }
 
-    if (mLinkage.getState() == 1) {
+    if (mLinkage.checkState(dLinkage_c::STATE_ACTIVE)) {
         startSound(SE_Pumpkin_PULLOUT);
         field_0xa15 = 0;
         mStateMgr.changeState(StateID_Throw); // figure out which state this is later
@@ -74,10 +91,10 @@ void dAcPumpkin_c::finalizeState_Stick() {
     mViewClipIdx = -1;
 }
 void dAcPumpkin_c::initializeState_Wait() {
-    field_0x908 = 0; // use set/unsetActorProperty for this
-    mActorProperties = mActorProperties | 1;
+    field_0x908 = 0; 
+    setActorProperty(AC_PROP_0x1);
     fn_19_2FC0(10);
-    mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
+    mSph.mAt.OffSPrm(1);
 }
 void dAcPumpkin_c::executeState_Wait() {
     u32 returnVal = 0;
@@ -85,32 +102,27 @@ void dAcPumpkin_c::executeState_Wait() {
         mStateMgr.changeState(StateID_StickSword);
     }
     else if (mLinkage.checkConnection(dLinkage_c::CONNECTION_5)) {
-        mStateMgr.changeState(StateID_Stick);
+        mStateMgr.changeState(StateID_CarryBeetle);
     }
     else if (mLinkage.checkConnection(dLinkage_c::CONNECTION_1)) {
         // startSound(0x9f4);
         int temp2 = 0;
-        if (mObjAcch.mFlags & 0x800 && mPosition.y > mObjAcch.GetWtrGroundH()) {
+        if (mObjAcch.MaskWaterHit() && mPosition.y > mObjAcch.GetWtrGroundH()) {
             temp2 = 1;
         }
         field_0xa15 = temp2;
-        mStateMgr.changeState(StateID_Roll);
-        //return;
+        mStateMgr.changeState(StateID_CarryGrab);
     }
 
     else if (mLinkage.checkConnection(dLinkage_c::CONNECTION_7)) {
-        mStateMgr.changeState(StateID_Wait);
+        mStateMgr.changeState(StateID_CarryWhip);
     }
 
     else if (mSph.ChkTgHit()) {
         if(field_0xa17 != 0) {
             fn_19_2C20();
         }
-        //return;
     }
-    // bool temp;
-    // temp = mObjAcch.mFlags & 0x800 && mPosition.y < mObjAcch.mWtr.mGroundH;
-    //u32 returnVal = 0;
     else if (mObjAcch.ChkWaterHit() && mObjAcch.GetWtrGroundH() > mPosition.y) {//weird if stuff
         returnVal = 1;
         if (mObjAcch.ChkGroundLanding() && mPosition.y + 50 < mObjAcch.GetWtrGroundH()) {
@@ -118,42 +130,31 @@ void dAcPumpkin_c::executeState_Wait() {
             return;
         }
         mVec3_c zero = mVec3_c::Zero;
-        if (dTgStream_c::getForce(mPosition, zero) == 0) {
-            return;
+        if (dTgStream_c::getForce(mPosition, zero)) {
+            mAngle.y = cM::atan2s(mPosition.x, mPosition.z);
+            sLib::addCalc(&(mSpeed), EGG::Math<float>::sqrt(mPosition.x * mPosition.x + mPosition.z * mPosition.z), 0.02, 1.0, 0.05
+            );
         }
-        // if (angleToRotate(mVec3_c::Zero)) {
-        mAngle.y = cM::atan2s(mPosition.x, mPosition.z);
-        sLib::addCalc(
-            &(mSpeed), EGG::Math<float>::sqrt(mPosition.x * mPosition.x + mPosition.z * mPosition.z), 0.02, 1.0, 0.05
-        );
-        //}
-        // mSpeed = mSpeed * 0.93;
-        // u32 temp5 = field0x9b8 << 0x10;
-        // s32 temp11 = temp5 / 0x32 + temp5 >> 0x1f;
-        // float temp15 = nw4r::math::SinFIdx(temp11 - (temp11 >> 0x1f) * 1.0f * 0.00390625);
-        // 264-288: integer divide field by 10, store as s16 on stack
-        s32 angleIdx = (field_0x9b8 / 50);
+        
+        mAng angleIdx = ((field_0x9b8 << 16) / 50);
+        f32 sinResult = angleIdx.sin();
 
-        // 28c-294: load as float, scale by constant
-        // f32 scaled = 1.0f * angleIdx;
-
-        // 298: compute sine in index units
-        f32 sinResult = nw4r::math::SinFIdx(angleIdx * 0.00390625f);
-        // float temp15 = nw4r::math::SinFIdx(tempf1);
-        mSpeed *= 0.93f; // fix this, completely wrong, just temp
-        mVelocity.y = (mSpeed * 0.8 + (mObjAcch.mWtr.mGroundH - mPosition.y) * fabs(mObjAcch.mWtr.mGroundH)) /
-                      (sinResult * 3.0 + 20.0);
-        if (mVelocity.y > 20.0) {
-            mVelocity.y = 20.0;
+        mSpeed *= 0.93f; // fix this and next line
+        //fabs(mObjAcch.GetWtrGroundH())
+        //mAcceleration
+        mVelocity.y = mVelocity.y * 0.8f + ((mObjAcch.GetWtrGroundH() - mPosition.y) * fabsf(mAcceleration)) /
+                      (sinResult * 3.0f + 20.0f);
+        if (mVelocity.y > 20) {
+            mVelocity.y = 20;
         }
-        if (mVelocity.y < -20.0) {
-            mVelocity.y = -20.0;
+        if (mVelocity.y < -20) {
+            mVelocity.y = -20;
         }
-        if (field_0x9db == 0) {
-            //field_0x90C = cM::rndInt(0x200) + 0x800;
+        if (field_0x9d0 == 0) {
+            field_0x90C = cM::rndInt(0x200) + 0x800;
             field_0x912 = cM::rndInt(0x100) + 0xa00;
-            startSound(0x9a0);
-            mSph.mAt.mSrc.mSPrm = (mSph.mAt.mSrc.mSPrm & 0xfffffffe);
+            startSound(SE_O_FALL_WATER_S);
+            mSph.mAt.OffSPrm(1);
         }
         fn_19_31B0();
         field_0x908 = 0;
@@ -162,7 +163,7 @@ void dAcPumpkin_c::executeState_Wait() {
 
     } else {
         if (mObjAcch.ChkGndHit()) {
-            field_0x912 = 0;
+            field_0x912 = 15000;
             if (field_0x908 < 150.0f) {
                 dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 1, 1.0f, field_0x1B0);
                 fn_19_2C20();
@@ -172,21 +173,16 @@ void dAcPumpkin_c::executeState_Wait() {
         }
 
         mSpeed *= 0.93f;
-        if (mObjAcch.mFlags & 0x80) {
+        if (mObjAcch.ChkGroundLanding()) {
             startSound(SE_Pumpkin_PUT);
             if (!field_0xA16 && fabsf(field_0x908) > 10.0f) {
                 dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 1, 1.0f, field_0x1B0);
             }
             field_0xA16 = 0;
-            mSph.mAt.mSrc.mSPrm = (mSph.mAt.mSrc.mSPrm & 0xfffffffe);
+            mSph.mAt.OffSPrm(1);
         }
         field_0x908 = 15.0f;
     }
-    // if(field_0x908 >= -150.0) {
-    //     startSound(SE_Pumpkin_PUT);
-    //         dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 1, 1.0f, field_0x1B0);
-
-    // }
     fn_19_2FD0();
     field_0x9d0 = returnVal;
 }
@@ -196,18 +192,15 @@ void dAcPumpkin_c::initializeState_CarryGrab() {
     fn_19_2FC0(4);
     mVelocity = mVec3_c::Zero;
     mSpeed = 0;
-    mSph.mCo.mSrc.mSPrm = mSph.mCo.mSrc.mSPrm | 0x400;
-    mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm & 0xfffffffe;
+    mSph.mCo.OnSPrm(0x400);
+    mSph.mAt.OffSPrm(1);
     unsetActorProperty(AC_PROP_0x1);
     field_0x99c = 0;
     field_0xa14 = 0;
     field_0xA16 = 0;
 }
 
-static volatile u8 lbl_19_data_70[] = { // temp
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x01, 0x20
-};
+
 
 void dAcPumpkin_c::executeState_CarryGrab() {
 
@@ -216,8 +209,8 @@ void dAcPumpkin_c::executeState_CarryGrab() {
 
     fn_19_2FD0();
 
-    u32 tempBool = mSph.mTg.MskRPrm(1) && mSph.mTg.GetActor();
-    if(tempBool && field_0xa17) {
+    //u32 tempBool = mSph.mTg.MskRPrm(1) && mSph.mTg.GetActor();//TODO fix mSph.ChkTgHit()
+    if(mSph.ChkTgHit() && field_0xa17) {
         fn_19_2C20();
     }
 
@@ -244,7 +237,8 @@ void dAcPumpkin_c::executeState_CarryGrab() {
     switch (state) {
     case 2:
         field_0x9bc = 0;
-        mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm | 0x1;
+        //mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm | 0x1;
+        mSph.mCo.OnSPrm(0x1);
         mStateMgr.changeState(StateID_Throw);
         break;
     case 3:
@@ -268,17 +262,18 @@ void dAcPumpkin_c::executeState_CarryGrab() {
     return;
 }
 void dAcPumpkin_c::finalizeState_CarryGrab() {
-    mSph.mCo.mSrc.mSPrm = mSph.mCo.mSrc.mSPrm & 0xfffffbff;
+    mSph.mCo.OffSPrm(0x400);
 }
 void dAcPumpkin_c::initializeState_StickSword() {
     fn_19_30C0();
     
     mVelocity = mVec3_c::Zero;
-    //mSph.mCo.mSrc.mSPrm |=  0x400;
+    
     mSph.mCo.OnSPrm(0x400);
-    //mSph.mAt.mSrc.mSPrm &=  0xfffffffe;
+    
     mSph.mAt.OffSPrm(1);
     field_0x964 = 0;
+
     field_0x914[0] = 0;
     field_0x914[1] = 0;
     field_0x914[2] = 0;
@@ -317,11 +312,12 @@ void dAcPumpkin_c::executeState_StickSword() {
     if(tempVec.squareMagXY() <= 0.0f) {
         tempFloat = nw4r::math::FrSqrt(tempVec.squareMagXY()) * tempVec.squareMagXY();
     }
-    field_0x914[0] = tempFloat;
+    field_0x914[field_0x964] = tempFloat;
     if(mLinkage.getState() != 1) {
         if(mSpeed > 1.0f) {
-            mSph.mAt.mSrc.mSPrm = mSph.mAt.mSrc.mSPrm | 1;
+            mSph.mAt.OnSPrm(1);
         }
+        //add here
         f32 tempFloat2 = 0;
         u32 counter = 2;
         while(counter != 0) {
@@ -347,101 +343,75 @@ void dAcPumpkin_c::executeState_StickSword() {
     }
 }
 void dAcPumpkin_c::finalizeState_StickSword() {
-    mSph.mCo.mSrc.mSPrm = mSph.mCo.mSrc.mSPrm & 0xfffffbff;
+    mSph.mCo.OffSPrm(0x400);
 }
 void dAcPumpkin_c::initializeState_Throw() {
-    mActorProperties = mActorProperties & 0xfffffffe;
+    unsetActorProperty(AC_PROP_0x1);
 }
 void dAcPumpkin_c::executeState_Throw() {
-    if ((mSph.mTg.mRPrm & 1 && mSph.mTg.GetActor()) || field_0xa17 == 0) {
-        if ((mSph.mTg.mRPrm & 1 && mSph.mTg.GetActor()) || field_0xa17 == 0) {
-            if ((mSph.mTg.mRPrm & 1 && mSph.mTg.GetActor()) || field_0xa17 == 0) {
+    if (!mSph.ChkTgHit() || field_0xa17 || mSph.ChkAtHit() || mSph.ChkCoHit()) {
                 fn_19_2C20();
-                if((mObjAcch.mFlags & 0x80) || mObjAcch.ChkWallHit(nullptr)) {
-                    dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
-                    fn_19_2C20();
-                    return;
-                }
-                if (mObjAcch.mFlags & 0x800 && mPosition.y > mObjAcch.GetWtrGroundH()) {
-                    field_0x9d0 = 0;
-                    mStateMgr.changeState(StateID_Wait); 
-                }
-                
-                if(field_0x9bc == 0) {
-                    f32 vel_mag = VEC3Len(mVelocity);
-                    f32 f1 = mAng(vel_mag * (field_0x9a4 + 200.f)).radian();
-                    f32 f2 = mAng(vel_mag * 182.0f * 0.2f).radian();
-                    f32 f0 = mAng(mAngle.y - mRotation.y).radian();//spinangle
-                    
-                    f32 hSpeed = mVelocity.squareMagXZ();
-
-                    mQuat_c q0, q1, q2, q3;//
-                    q1.setAxisRotation(mVec3_c::Ey, f0);
-                    q0.setAxisRotation(mVec3_c::Ey, -f0);   
-                    q3.setAxisRotation(mVec3_c::Ex, hSpeed * f1);
-                    //q2.setAxisRotation(mVec3_c::Ey, f2);
-                    f32 fVar14 = mPosition.squareMagXZ();
-                    // uStack_a4 = 0x80000000;
-                    // uVar11 = (uint)(short)(*(short *)(param_1 + 0x13e) - *(short *)(param_1 + 0xba));
-                    // uStack_ac = uVar11 ^ 0x80000000;
-                    // iVar13 = (int)(((fVar14 * ((float)((double)CONCAT44(local_b0, 0x80000000) -
-                    //                                     4503601774854144.0) * 0.01 + 0.4) +
-                    //                 ABS(fVar1) *
-                    //                 ((float)((double)CONCAT44(local_a8, 0x80000000) - 4503601774854144.0) *
-                    //                 0.01 + 0.3)) * 65535.0) / 194.77875);
-                    //local_a0 = (longlong)iVar13;
-                    //fVar1 = (float)((double)(CONCAT44(local_b0, uVar11) ^ 0x80000000) - 4503601774854144.0) *
-                    //        9.58738e-05;
-                    //EGG::Quatf::setAxisRotation(fVar1, &q0, &mVec3_c::Ey);
-                    //EGG::Quatf::setAxisRotation(-fVar1, &q1, &mVec3_c::Ey);
-                    //uVar11 = (uint)(short)iVar13;
-                    //uStack_a4 = uVar11 ^ 0x80000000;
-                    //EGG::Quatf::setAxisRotation
-                    //            ((float)((double)(CONCAT44(local_a8, uVar11) ^ 0x80000000) - 4503601774854144.0)
-                    //            * 9.58738e-05, &q3, &mVec3_c::Ex);
-                    /*f32 fVar3 = (q0.v.z * q3.v.x - q0.v.x * q3.v.z) +
-                            q3.v.y * q0.w + q0.v.y * q3.w;
-                    f32 fVar5 = (q0.v.y * q3.v.z - q0.v.z * q3.v.y) +
-                            q3.v.x * q0.w + q0.v.x * q3.w;
-                    f32 fVar4 = (q0.v.x * q3.v.y - q0.v.y * q3.v.x) +
-                            q3.v.z * q0.w + q0.v.z * q3.w;
-                    f32 fVar6 = q0.w * q3.w -
-                            (q0.v.z * q3.v.z +
-                            q0.v.x * q3.v.x + q0.v.y * q3.v.y);
-                    f32 fVar1 = field_0x9c0.v.z;
-                    fVar14 = field_0x9c0.v.y;
-                    f32 fVar7 = (fVar3 * q1.v.z - fVar4 * q1.v.y) + q1.v.x * fVar6 +
-                            fVar5 * q1.w;
-                    f32 fVar8 = (fVar4 * q1.v.x - fVar5 * q1.v.z) + q1.v.y * fVar6 +
-                            fVar3 * q1.w;
-                    f32 fVar2 = field_0x9c0.v.x;
-                    f32 fVar9 = (fVar5 * q1.v.y - fVar3 * q1.v.x) + q1.v.z * fVar6 +
-                            fVar4 * q1.w;
-                    fVar4 = fVar6 * q1.w -
-                            (fVar4 * q1.v.z + fVar5 * q1.v.x + fVar3 * q1.v.y);
-                    fVar3 = field_0x9c0.w;
-                    field_0x9c0.v.x =
-                        (fVar8 * fVar1 - fVar9 * fVar14) + fVar2 * fVar4 + fVar7 * fVar3;
-                    field_0x9c0.v.y =
-                        (fVar9 * fVar2 - fVar7 * fVar1) + fVar14 * fVar4 + fVar8 * fVar3;
-                    field_0x9c0.v.z =
-                        (fVar7 * fVar14 - fVar8 * fVar2) + fVar1 * fVar4 + fVar9 * fVar3;
-                    field_0x9c0.w =
-                        fVar4 * fVar3 - (fVar9 * fVar1 + fVar7 * fVar2 + fVar8 * fVar14);*/
-                    field_0x9c0 = field_0x9c0 * q0 * q3 * q1 ;
-                    return;
-                }
-                if (field_0x9bc != 1) {
-                    return;
-                }
-                mRotation.y = mRotation.y + 0xc00;
-                sLib::addCalcAngle(mRotation.x.ref(), 0x1000, 5, 0x100);
-                sLib::addCalcAngle(mRotation.z.ref(), 0, 5, 0x100);
                 return;
-                
-            }
-        }
     }
+    if((mObjAcch.ChkGroundLanding()) || mObjAcch.ChkWallHit(nullptr)) {
+        dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
+        fn_19_2C20();
+        return;
+    }
+    if (mObjAcch.ChkWaterHit() && mPosition.y > mObjAcch.GetWtrGroundH()) {
+        field_0x9d0 = 0;
+        mStateMgr.changeState(StateID_Wait); 
+    }
+    
+    if(field_0x9bc == 0) {
+        //f32 vel_mag = VEC3Len(mVelocity);
+        f32 yABS = fabs(mVelocity.y);
+        f32 vel_mag = mVelocity.absXZ();
+        
+        s32 zeroVar = 0;
+        f32 ASf2 = 0.01f * zeroVar;
+        f32 ASf4 = 0.01f * zeroVar;
+
+        ASf2 += 0.4f;
+        ASf4 += 0.3f;
+
+        
+        ASf2 *= vel_mag;
+        ASf4 *= yABS;
+
+        f32 ASf = ASf2 + ASf4;
+        ASf *= 65535.0f;
+        ASf /= 194.77875f;
+        s32 tempVar = ASf;
+        //f32 f1 = mAng(vel_mag * (field_0x9a4 + 200.f - ASf2)).radian();
+        //s32 tempVar = field_0x9a4 + 200.f - ASf2;
+        //s32 tempVar = (65535.0f * ((vel_mag * (0.4f + ASf2)) + (abs(mVelocity.y) * (0.3f + ASf4)))) - 194.77875f;
+        //f32 f2 = mAng(vel_mag * 182.0f * 0.2f).radian();
+        f32 f0 = mAng(mAngle.y - mRotation.y).radian();//spinangle -seems to be right
+        
+        //f2 =  ( 65535.0f  * (( vel_mag * 0.4f + f6 (0 double?)) + (abs(mVelocity.y) * (0.3f + f4 (0 double?))))) -  194.77875.0f
+
+        //f32 hSpeed = mVelocity.squareMagXZ();
+
+        mQuat_c q0, q1, q2, q3;//
+        q1.setAxisRotation(mVec3_c::Ey, f0);
+        q0.setAxisRotation(mVec3_c::Ey, -f0);
+        f32 f1 = mAng(tempVar).radian();
+        q3.setAxisRotation(mVec3_c::Ex, /*hSpeed **/ f1);
+        
+        field_0x9c0 = field_0x9c0 * q0 * q3 * q1 ;
+        return;
+    }
+    if (field_0x9bc != 1) {
+        return;
+    }
+    mRotation.y = mRotation.y + 0xc00;
+    sLib::addCalcAngle(mRotation.x.ref(), 0x1000, 5, 0x100);
+    sLib::addCalcAngle(mRotation.z.ref(), 0, 5, 0x100);
+    return;
+                
+
+    
     //fn_19_2C20();
 }
 void dAcPumpkin_c::finalizeState_Throw() {}
@@ -452,11 +422,11 @@ void dAcPumpkin_c::initializeState_Roll() {
 void dAcPumpkin_c::executeState_Roll() {
     fn_19_31B0();
     if (mLinkage.checkConnection(dLinkage_c::CONNECTION_6)) {
-        mStateMgr.changeState(StateID_Roll);
+        mStateMgr.changeState(StateID_StickSword);
         return;
     }
     if(mLinkage.checkState(dLinkage_c::STATE_ACTIVE)) {
-        mStateMgr.changeState(StateID_Wait);
+        mStateMgr.changeState(StateID_CarryGrab);
         return;
     }
     if (mSph.ChkTgHit()) {
@@ -464,30 +434,108 @@ void dAcPumpkin_c::executeState_Roll() {
         if(field_0xa17 != 0) {    
             fn_19_2C20(); 
         }
-    }
-    if ((mObjAcch.mFlags & 0x80) || mObjAcch.ChkWallHit(nullptr)) {
-        if (mObjAcch.mFlags & 0x80) {
-            if(field_0x908 > -150.0f) {
-                dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
-                fn_19_2C20();
-                
-            }
-            else {
-                AttentionManager::GetInstance()->addPickUpTarget(*this, 120.0f);
-                AttentionManager::GetInstance()->addUnk3Target(*this, 1, 500.0f, -200.0f, 200.0f);
-            }
-            field_0x908 = 0;
-            mSpeed *= 0.98f;
-            if(mSpeed < 1.0f) {
-                mSpeed = 0;
-            }
-        }
-        if(field_0x99c == 0) {
-            
-            field_0x9b4 += field_0x9b4 * 0.05f;
-        }
+    }//mPosition.x
+    if(mObjAcch.mFlags & 0x800 && mPosition.y > mObjAcch.GetWtrGroundH()) {
+        field_0x99c = 0;
+        field_0x9d0 = 0;
+        mStateMgr.changeState(StateID_Wait);
+        
         return;
     }
+    if (mObjAcch.ChkGndHit()) {
+        
+        if(field_0x908 > -150.0f) {
+            dJEffManager_c::spawnGroundEffect(mPosition, mPolyAttr0, mPolyAttr1, field_0x1B4, 0, 1.0f, field_0x1B0);
+            fn_19_2C20();
+            
+        }
+        else {
+            AttentionManager *ins = AttentionManager::GetInstance();
+            ins->addPickUpTarget(*this, 120.0f);
+            ins->addUnk3Target(*this, 1, 500.0f, -200.0f, 200.0f);
+        }
+        field_0x908 = 0.0f;
+        mSpeed *= 0.98f;
+        
+        if(mSpeed < 1.0f) {
+            mSpeed = 0;
+        }
+        if(field_0x99c) {
+            //field_0x9b4 *= 1.05f;
+            mVec3_c tempVector = mVec3_c::Ey;
+            mAng temp0 = field_0x9b8 * 0x157c;//fix
+            //float tempf = nw4r::math::SinFIdx((f32)temp0 * 0.00390625f ) * 512.0f + 16384.0f;//fix
+            f32 tempf = temp0.sin() * 512.0f + 16384.0f;
+            tempVector.rotZ(tempf);
+            tempVector.rotY(field_0x9a0);
+            field_0x9a8 += 0.08f;
+            if(field_0x9a8 > 0.15f) {
+                field_0x9a8 = 0.08f;
+            }
+                field_0x9a4 += field_0x9a8;
+            if(field_0x9a4 > 0.08f) {
+                field_0x9a4 = 0.08f;
+            }
+            mQuat_c q;
+            q.fn_802F2450( mVec3_c::Ey, tempVector, field_0x9a4);
+            field_0x968.fromQuat(q);
+            mAng angle = mSpeed * 65536.0f / 188.49556f;
+            if(angle > 0x800) {
+                angle = 0x800;
+            }
+            s16 temp2 = angle;
+            if(angle < -0x800) {
+                temp2 = -0x800;
+            }
+            field_0x99e -= temp2;
+            
+            if (mObjAcch.ChkWallHit(nullptr) && mSpeed < 4.0f) {
+                if (mSph.ChkTgHit()) {
+                    return;
+                }
+            }
+            field_0x99c = 0;//are these right??
+            field_0x9ae = lbl_19_data_70[1];
+            f32 tempf2 = field_0x9a4;
+            field_0x9a4 = 0;
+            field_0x9b0 = tempf2 * 16384.0f;
+            field_0x9b2 = lbl_19_data_70[2];
+            field_0x9b4 = mSpeed * 65536.0f / 188.49556f;
+            mSpeed = 0;
+            
+        }
+        else {
+            
+            field_0x9b4 += field_0x9b4 * 0.05f;
+            if(field_0x9b4 > 0xc00) {
+                field_0x9b4 = lbl_19_data_70[3];
+            }
+            field_0x9a0 += field_0x9b4;
+            field_0x9b2 += lbl_19_data_70[4];
+            if (field_0x9b2 > 0x120) {
+                field_0x9b2 = lbl_19_data_70[5];
+            }
+
+            //field_0x9b2 = 0x120;
+            sLib::chaseAngle(&field_0x9b0.mVal, 0, field_0x9b2);
+            mVec3_c tempVector = mVec3_c::Ey;
+            tempVector.rotZ(field_0x9b0);
+            tempVector.rotY(field_0x9a0);
+            mQuat_c q;
+            q.fn_802F2450( mVec3_c::Ey, tempVector, 1.0f);
+            field_0x968.fromQuat(q);
+            if(mVec3_c::Ey == mPositionCopy) { //TODO fix temp comparison
+               mStateMgr.changeState(StateID_Wait); 
+            }
+        }
+    }
+    /*else {
+        field_0x99c = 0;
+        field_0x9d0 = 0;
+        mStateMgr.changeState(StateID_Wait); 
+    }*/
+    return;
+    
 
 }
 void dAcPumpkin_c::finalizeState_Roll() {}
@@ -547,7 +595,7 @@ void dAcPumpkin_c::fn_19_220() {
 }
 void dAcPumpkin_c::fn_19_2C20() { // destroy related to pumpkin game?
 
-    // fn_80022BE0(dLightEnv_c::GetPInstance(), mPosition);
+    // fn_80022BE0(dLightEnv_c::GetPInstance(), mPosition);TODO fix
     // getLinkage().forceRemove(this);
     mVec3_c tempVec;
     fn_19_3130(&tempVec, this); // TODO fix
@@ -571,7 +619,7 @@ void dAcPumpkin_c::fn_19_2C20() { // destroy related to pumpkin game?
         u32 tempfield = field_0x9dc;
         if (tempfield) {
             u32 hit = 0;
-            if ((mSph.mTg.mRPrm & 1) && mSph.mTg.GetActor() != nullptr) {
+            if ((mSph.mTg.mRPrm & 1) && mSph.mTg.GetActor() != nullptr) {//TODO fix
                 // Handle hit type 0x20
 
                 if (mSph.ChkTgAtHitType(0x2000)) {
@@ -714,21 +762,22 @@ void dAcPumpkin_c::fn_19_2920() {//actor execute?
     sLib::addCalcAngle(&field_0x90C.mVal, 0, 0x3c, 0x100, 0x10);
     field_0x90E = field_0x90E + field_0x912;
     f32 tempf5 = 0.0f;
-    if (mStateMgr.isState(StateID_CarryWhip) != 0) { // TODO figure out which state this is later
+    if (mStateMgr.isState(StateID_Roll)) { 
         
         mVec3_c tempVec = mVec3_c::Ey;
         mAng temp4 = 0;
         PSMTXMultVec(field_0x968, tempVec, tempVec);
-        bool tempBool = fabsf(tempVec.absXZ()) <= FLT_EPSILON;
-        if (tempBool) {
+        if (!cM::isZero(tempVec.absXZ())) {
             tempf5 = tempVec.absXZ();
             //temp4 = temp4.fromVec(tempVec);
             temp4 = temp4.atan2s(tempVec.y, tempf5);
-            //temp4 = temp4.degree();
+            temp4 = 0x4000 - temp4;
             //tempVec.atan2sY_XZ();
         }
-        tempf5 = nw4r::math::SinFIdx(temp4 /** 0.00390625f*/);
-        tempf5 = nw4r::math::CosFIdx((float)(0x4000 - temp4) * 1.0f * 0.00390625f);
+        tempf5 = temp4.sin();
+        temp4 = 0x4000 - temp4;
+        f32 tempf6 = temp4.cos();
+        tempf5 = 30.0f * tempf6 * tempf5;
     }
     getLinkage().fn_800511E0(this);
     Mtx tempMtx;
@@ -739,10 +788,10 @@ void dAcPumpkin_c::fn_19_2920() {//actor execute?
     //mAng3_c tempAng = -field_0x90E;
     mWorldMtx.YrotM(-field_0x90E);
     Mtx tempMtx2;
-    PSMTXTrans(tempMtx, 0, 15.0, 0);
+    PSMTXTrans(tempMtx, 0, -15.0, 0);
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
     mWorldMtx.YrotM(-field_0x90E);
-    PSMTXTrans(tempMtx, 0, 15.0, 0);
+    PSMTXTrans(tempMtx, 0, tempf5, 0);
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
     PSMTXConcat(mWorldMtx, tempMtx, mWorldMtx);
     mWorldMtx.YrotM(field_0x90E);
